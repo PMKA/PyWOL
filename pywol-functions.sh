@@ -91,7 +91,7 @@ create_container() {
   
   # Get available bridges
   msg_info "Checking available bridges"
-  local bridges=$(pveum group list | grep -i "bridge" | awk '{print $1}')
+  local bridges=$(ip link show | grep -E "^[0-9]+:" | grep -v "lo:" | awk -F: '{print $2}' | tr -d ' ')
   if [ -z "$bridges" ]; then
     bridges="vmbr0"
   fi

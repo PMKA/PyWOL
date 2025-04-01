@@ -9,6 +9,10 @@
 if [ ! -f "pywol-functions.sh" ]; then
     echo "Downloading functions file..."
     wget -q https://github.com/PMKA/PyWOL/raw/master/pywol-functions.sh
+    if [ ! -f "pywol-functions.sh" ]; then
+        echo "Failed to download functions file"
+        exit 1
+    fi
 fi
 
 # Source our functions
