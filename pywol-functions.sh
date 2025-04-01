@@ -59,7 +59,7 @@ create_container() {
   
   # Get available storages that support containers
   msg_info "Checking available storages"
-  local storages=$(pvesm status -content rootdir | awk 'NR>1 {print $1}')
+  local storages=$(pvesm status -content rootdir | grep -v "local" | awk 'NR>1 {print $1}')
   if [ -z "$storages" ]; then
     msg_error "No storage found that supports containers"
     exit 1
