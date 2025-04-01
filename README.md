@@ -9,7 +9,6 @@ A modern web application for managing and waking up devices using Wake-on-LAN (W
 - Modern, responsive web interface
 - JSON-based device storage
 - RESTful API
-- Beautiful animations and transitions
 - Error handling and notifications
 - Mobile-friendly design
 
@@ -83,7 +82,7 @@ pywol/
 
 ## Frontend Features
 
-- Responsive design that works on all devices
+- works on all devices
 - Smooth animations for device cards
 - Real-time notifications for actions
 - Form validation for MAC addresses
