@@ -5,6 +5,12 @@
 # License: MIT
 # https://github.com/PMKA/PyWOL/raw/master/LICENSE
 
+# Download functions file if not present
+if [ ! -f "pywol-functions.sh" ]; then
+    echo "Downloading functions file..."
+    wget -q https://github.com/PMKA/PyWOL/raw/master/pywol-functions.sh
+fi
+
 # Source our functions
 source pywol-functions.sh
 
