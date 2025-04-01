@@ -32,7 +32,7 @@ class Device(BaseModel):
     name: str
     mac_address: str
     ip_address: Optional[str] = None
-    broadcast_ip: Optional[str] = "255.255.255.255"
+    broadcast_ip: str = "255.255.255.255"
     port: Optional[int] = 9
 
     @validator('mac_address')
@@ -89,16 +89,28 @@ async def delete_device(mac_address: str):
 @app.post("/api/wake/{device_name}")
 async def wake_device(device_name: str):
     devices = load_devices()
-    device = next((d for d in devices if d.name.lower() == device_name.lower()), None)
+    # Normalize the input device name
+    normalized_input = device_name.lower().strip()
+    
+    # Find device with case-insensitive comparison
+    device = next((d for d in devices if d.name.lower().strip() == normalized_input), None)
     
     if not device:
+        print(f"Device not found. Input: '{device_name}', Normalized: '{normalized_input}'")
+        print(f"Available devices: {[d.name for d in devices]}")
         raise HTTPException(status_code=404, detail="Device not found")
     
     try:
         print(f"Attempting to wake device: {device.name}")
         print(f"MAC address: {device.mac_address}")
-        print(f"Broadcast IP: {device.broadcast_ip}")
-        print(f"Port: {device.port}")
+        
+        # Ensure broadcast IP is set
+        broadcast_ip = device.broadcast_ip if device.broadcast_ip else "255.255.255.255"
+        print(f"Broadcast IP: {broadcast_ip}")
+        
+        # Ensure port is set
+        port = device.port if device.port else 9
+        print(f"Port: {port}")
         
         # Ensure MAC address is properly formatted
         mac_address = re.sub(r'[-:]', '', device.mac_address)
@@ -106,8 +118,8 @@ async def wake_device(device_name: str):
         
         send_magic_packet(
             mac_address,
-            ip_address=device.broadcast_ip,
-            port=device.port
+            ip_address=broadcast_ip,
+            port=port
         )
         print("Magic packet sent successfully")
         return {"message": f"Wake-on-LAN packet sent to {device.name}"}

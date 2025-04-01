@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
             name: document.getElementById('name').value,
             mac_address: document.getElementById('macAddress').value,
             ip_address: document.getElementById('ipAddress').value || null,
-            broadcast_ip: document.getElementById('broadcastIp').value,
-            port: parseInt(document.getElementById('port').value)
+            broadcast_ip: document.getElementById('broadcastIp').value || "255.255.255.255",
+            port: parseInt(document.getElementById('port').value) || 9
         };
 
         try {
