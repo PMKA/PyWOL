@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyWOL - API Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PyWOL API Documentation</h1>
+            <nav>
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="api.html" class="nav-link active">API Docs</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="api-section">
+                <h2>Available Endpoints</h2>
+                
+                <div class="endpoint-card">
+                    <h3>List All Devices</h3>
+                    <div class="endpoint-details">
+                        <span class="method get">GET</span>
+                        <code>/api/devices</code>
+                    </div>
+                    <div class="response-example">
+                        <h4>Response Example:</h4>
+                        <pre><code>[
+    {
+        "name": "My PC",
+        "mac_address": "00:11:22:33:44:55",
+        "ip_address": "192.168.1.100",
+        "broadcast_ip": "192.168.1.255"
+    }
+]</code></pre>
+                    </div>
+                </div>
+
+                <div class="endpoint-card">
+                    <h3>Add New Device</h3>
+                    <div class="endpoint-details">
+                        <span class="method post">POST</span>
+                        <code>/api/devices</code>
+                    </div>
+                    <div class="request-body">
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+    "name": "My PC",
+    "mac_address": "00:11:22:33:44:55",
+    "ip_address": "192.168.1.100",
+    "broadcast_ip": "192.168.1.255"
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="endpoint-card">
+                    <h3>Delete Device</h3>
+                    <div class="endpoint-details">
+                        <span class="method delete">DELETE</span>
+                        <code>/api/devices/{mac_address}</code>
+                    </div>
+                    <div class="parameters">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>mac_address</code>: The MAC address of the device to delete</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint-card">
+                    <h3>Wake Device</h3>
+                    <div class="endpoint-details">
+                        <span class="method post">POST</span>
+                        <code>/api/wake/{mac_address}</code>
+                    </div>
+                    <div class="parameters">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>mac_address</code>: The MAC address of the device to wake</li>
+                        </ul>
+                    </div>
+                    <div class="response-example">
+                        <h4>Response Example:</h4>
+                        <pre><code>{
+    "status": "success",
+    "message": "Wake-on-LAN packet sent successfully"
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section class="api-section">
+                <h2>Interactive API Documentation</h2>
+                <p>For interactive API documentation and testing, visit:</p>
+                <a href="/docs" class="swagger-link" target="_blank">Swagger UI Documentation</a>
+            </section>
+        </main>
+    </div>
+</body>
+</html> 
