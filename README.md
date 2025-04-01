@@ -20,6 +20,8 @@ A modern web application for managing and waking up devices using Wake-on-LAN (W
 
 ## Installation
 
+### Standard Installation
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/PMKA/pywol.git
@@ -35,6 +37,24 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 3. Install dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+### Alpine Linux LXC Deployment
+
+1. Create a new Alpine Linux LXC container in Proxmox
+
+2. SSH into your Alpine container and run:
+```bash
+# Make the deployment script executable
+chmod +x deploy_alpine.sh
+
+# Run the deployment script
+./deploy_alpine.sh
+```
+
+3. The application will be available at:
+```
+http://<container-ip>:8000
 ```
 
 ## Usage
@@ -65,6 +85,10 @@ http://localhost:8000
 pywol/
 ├── main.py              # FastAPI backend
 ├── requirements.txt     # Python dependencies
+├── Dockerfile          # Standard Dockerfile
+├── Dockerfile.alpine   # Alpine-specific Dockerfile
+├── docker-compose.yml  # Docker Compose configuration
+├── deploy_alpine.sh    # Alpine deployment script
 ├── static/             # Static files
 │   ├── index.html      # Main HTML file
 │   ├── styles.css      # CSS styles
@@ -91,7 +115,9 @@ pywol/
 
 ## Docker Deployment
 
-To deploy in an Alpine LXC container:
+### Standard Docker Deployment
+
+To deploy using standard Docker:
 
 1. Build the Docker image:
 ```bash
@@ -101,6 +127,25 @@ docker build -t pywol .
 2. Run the container:
 ```bash
 docker run -d -p 8000:8000 --name pywol pywol
+```
+
+### Alpine Linux Docker Deployment
+
+To deploy using Docker Compose (recommended for Alpine):
+
+1. Build and start the container:
+```bash
+docker-compose up -d --build
+```
+
+2. View logs:
+```bash
+docker-compose logs -f
+```
+
+3. Stop the container:
+```bash
+docker-compose down
 ```
 
 ## License
