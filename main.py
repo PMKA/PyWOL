@@ -48,10 +48,10 @@ class Device(BaseModel):
         return ':'.join(v[i:i+2] for i in range(0, 12, 2))
 
 # File paths
-DEVICES_FILE = BASE_DIR / "data" / "devices.json"
+DEVICES_FILE = Path("/app/data/devices.json")
 
 # Ensure data directory exists
-os.makedirs(BASE_DIR / "data", exist_ok=True)
+os.makedirs(Path("/app/data"), exist_ok=True)
 
 def load_devices() -> List[Device]:
     if DEVICES_FILE.exists():
