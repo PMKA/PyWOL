@@ -104,8 +104,13 @@ async def wake_device(device_name: str):
         print(f"Attempting to wake device: {device.name}")
         print(f"MAC address: {device.mac_address}")
         
-        # Ensure broadcast IP is set
-        broadcast_ip = device.broadcast_ip if device.broadcast_ip else "255.255.255.255"
+        # Calculate broadcast IP from device IP
+        if device.ip_address:
+            ip_parts = device.ip_address.split('.')
+            broadcast_ip = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.255"
+        else:
+            broadcast_ip = "255.255.255.255"
+            
         print(f"Broadcast IP: {broadcast_ip}")
         
         # Ensure port is set
@@ -116,12 +121,23 @@ async def wake_device(device_name: str):
         mac_address = re.sub(r'[-:]', '', device.mac_address)
         mac_address = ':'.join(mac_address[i:i+2] for i in range(0, 12, 2))
         
-        send_magic_packet(
-            mac_address,
-            ip_address=broadcast_ip,
-            port=port
-        )
-        print("Magic packet sent successfully")
+        # Try sending multiple times with different broadcast addresses
+        try:
+            send_magic_packet(
+                mac_address,
+                ip_address=broadcast_ip,
+                port=port
+            )
+            print(f"Magic packet sent successfully to {broadcast_ip}")
+        except Exception as e:
+            print(f"Failed to send to {broadcast_ip}, trying 255.255.255.255: {str(e)}")
+            send_magic_packet(
+                mac_address,
+                ip_address="255.255.255.255",
+                port=port
+            )
+            print("Magic packet sent successfully to 255.255.255.255")
+            
         return {"message": f"Wake-on-LAN packet sent to {device.name}"}
     except Exception as e:
         print(f"Error sending magic packet: {str(e)}")
