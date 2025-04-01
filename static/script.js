@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${device.ip_address ? `<div class="device-ip"><i class="fas fa-globe"></i> IP: ${device.ip_address}</div>` : ''}
                 </div>
                 <div class="device-actions">
-                    <button class="btn-wake" onclick="wakeDevice('${device.mac_address}')">
+                    <button class="btn-wake" onclick="wakeDevice('${device.name}')">
                         <i class="fas fa-power-off"></i> Wake
                     </button>
                     <button class="btn-delete" onclick="deleteDevice('${device.mac_address}')">
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Wake device function
-    window.wakeDevice = async (macAddress) => {
+    window.wakeDevice = async (deviceName) => {
         if (isLoading) return;
         const button = event.currentTarget;
         const originalButtonText = button.innerHTML;
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isLoading = true;
 
         try {
-            const response = await fetch(`/api/wake/${macAddress}`, {
+            const response = await fetch(`/api/wake/${encodeURIComponent(deviceName)}`, {
                 method: 'POST'
             });
 

@@ -73,10 +73,10 @@ async def delete_device(mac_address: str):
     save_devices(devices)
     return {"message": "Device deleted"}
 
-@app.post("/api/wake/{mac_address}")
-async def wake_device(mac_address: str):
+@app.post("/api/wake/{device_name}")
+async def wake_device(device_name: str):
     devices = load_devices()
-    device = next((d for d in devices if d.mac_address == mac_address), None)
+    device = next((d for d in devices if d.name.lower() == device_name.lower()), None)
     
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
