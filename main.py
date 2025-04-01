@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import time
 import socket
+import subprocess
 
 app = FastAPI(title="PyWOL", description="Wake-on-LAN Application")
 
@@ -103,7 +104,7 @@ async def wake_device(device_name: str):
         raise HTTPException(status_code=404, detail="Device not found")
     
     try:
-        print(f"Attempting to wake device: {device.name}")
+        print(f"\n=== WOL Attempt for {device.name} ===")
         print(f"MAC address: {device.mac_address}")
         
         # Clean MAC address
@@ -119,9 +120,9 @@ async def wake_device(device_name: str):
         
         # Try different broadcast addresses
         broadcast_addresses = [
-            "10.7.123.255",  # VLAN 123 broadcast
+            "10.7.123.255",     # VLAN 123 broadcast
             "255.255.255.255",  # Global broadcast
-            "10.7.123.9"  # Direct to desktop IP
+            "10.7.123.9"        # Direct to desktop IP
         ]
         
         for broadcast_ip in broadcast_addresses:
@@ -136,7 +137,8 @@ async def wake_device(device_name: str):
             except Exception as e:
                 print(f"Failed to send to {broadcast_ip}: {str(e)}")
         
-        return {"message": f"Wake-on-LAN packets sent to {device.name}"}
+        return {"message": f"WOL packet sent to {device.name}"}
+            
     except Exception as e:
         print(f"Error sending magic packet: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
