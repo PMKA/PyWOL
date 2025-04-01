@@ -10,6 +10,7 @@ from typing import List, Optional
 from pathlib import Path
 import re
 import time
+import socket
 
 app = FastAPI(title="PyWOL", description="Wake-on-LAN Application")
 
@@ -105,43 +106,36 @@ async def wake_device(device_name: str):
         print(f"Attempting to wake device: {device.name}")
         print(f"MAC address: {device.mac_address}")
         
-        # Always use the VLAN 123 broadcast address since we're on that VLAN
-        broadcast_ip = "10.7.123.255"
-        print(f"Broadcast IP: {broadcast_ip}")
-        
-        # Ensure port is set
-        port = device.port if device.port else 9
-        print(f"Port: {port}")
-        
-        # Ensure MAC address is properly formatted
+        # Clean MAC address
         mac_address = re.sub(r'[-:]', '', device.mac_address)
-        mac_address = ':'.join(mac_address[i:i+2] for i in range(0, 12, 2))
+        print(f"Cleaned MAC: {mac_address}")
         
-        # Send multiple magic packets with delays
-        for i in range(3):  # Send 3 times
+        # Create magic packet manually (like in PowerShell)
+        magic_packet = bytes([0xFF] * 6)  # 6 bytes of 0xFF
+        mac_bytes = bytes.fromhex(mac_address)
+        magic_packet += mac_bytes * 16  # MAC address repeated 16 times
+        
+        print(f"Magic packet size: {len(magic_packet)} bytes")
+        
+        # Try different broadcast addresses
+        broadcast_addresses = [
+            "10.7.123.255",  # VLAN 123 broadcast
+            "255.255.255.255",  # Global broadcast
+            "10.7.123.9"  # Direct to desktop IP
+        ]
+        
+        for broadcast_ip in broadcast_addresses:
             try:
-                print(f"Sending magic packet {i+1}/3 to {broadcast_ip}")
-                send_magic_packet(
-                    mac_address,
-                    ip_address=broadcast_ip,
-                    port=port
-                )
-                time.sleep(1)  # Wait 1 second between packets
+                print(f"\nTrying broadcast IP: {broadcast_ip}")
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                sock.sendto(magic_packet, (broadcast_ip, 9))
+                print(f"Packet sent successfully to {broadcast_ip}")
+                sock.close()
+                time.sleep(1)  # Wait between attempts
             except Exception as e:
                 print(f"Failed to send to {broadcast_ip}: {str(e)}")
-                break
         
-        # Try one more time with 255.255.255.255 as fallback
-        try:
-            print("Sending final magic packet to 255.255.255.255")
-            send_magic_packet(
-                mac_address,
-                ip_address="255.255.255.255",
-                port=port
-            )
-        except Exception as e:
-            print(f"Failed to send to 255.255.255.255: {str(e)}")
-            
         return {"message": f"Wake-on-LAN packets sent to {device.name}"}
     except Exception as e:
         print(f"Error sending magic packet: {str(e)}")
