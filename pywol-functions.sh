@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Source the Proxmox VE Helper Scripts functions
+source /dev/stdin <<<"$FUNCTIONS_FILE_PATH"
+
 # Color codes for output
 RD=$(echo "\033[01;31m")
 YW=$(echo "\033[33m")

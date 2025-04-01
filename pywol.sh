@@ -5,18 +5,8 @@
 # License: MIT
 # https://github.com/PMKA/PyWOL/raw/master/LICENSE
 
-# Download functions file if not present
-if [ ! -f "pywol-functions.sh" ]; then
-    echo "Downloading functions file..."
-    wget -q https://github.com/PMKA/PyWOL/raw/master/pywol-functions.sh
-    if [ ! -f "pywol-functions.sh" ]; then
-        echo "Failed to download functions file"
-        exit 1
-    fi
-fi
-
-# Source our functions
-source pywol-functions.sh
+# Source the Proxmox VE Helper Scripts functions
+source /dev/stdin <<<"$FUNCTIONS_FILE_PATH"
 
 # Check requirements
 check_root
@@ -51,7 +41,7 @@ RestartSec=10
 WantedBy=multi-user.target"
 
 # Main installation process
-create_container "$CONTAINER_ID" "$HOSTNAME" "$MEMORY" "$SWAP" "$CORES"
+setting_up_container "$CONTAINER_ID" "$HOSTNAME" "$MEMORY" "$SWAP" "$CORES"
 install_dependencies "$CONTAINER_ID"
 clone_repo "$CONTAINER_ID" "$REPO" "$INSTALL_PATH"
 install_python_deps "$CONTAINER_ID" "$INSTALL_PATH"
