@@ -9,6 +9,7 @@ from wakeonlan import send_magic_packet
 from typing import List, Optional
 from pathlib import Path
 import re
+import time
 
 app = FastAPI(title="PyWOL", description="Wake-on-LAN Application")
 
@@ -121,24 +122,32 @@ async def wake_device(device_name: str):
         mac_address = re.sub(r'[-:]', '', device.mac_address)
         mac_address = ':'.join(mac_address[i:i+2] for i in range(0, 12, 2))
         
-        # Try sending multiple times with different broadcast addresses
+        # Send multiple magic packets with delays
+        for i in range(3):  # Send 3 times
+            try:
+                print(f"Sending magic packet {i+1}/3 to {broadcast_ip}")
+                send_magic_packet(
+                    mac_address,
+                    ip_address=broadcast_ip,
+                    port=port
+                )
+                time.sleep(1)  # Wait 1 second between packets
+            except Exception as e:
+                print(f"Failed to send to {broadcast_ip}: {str(e)}")
+                break
+        
+        # Try one more time with 255.255.255.255
         try:
-            send_magic_packet(
-                mac_address,
-                ip_address=broadcast_ip,
-                port=port
-            )
-            print(f"Magic packet sent successfully to {broadcast_ip}")
-        except Exception as e:
-            print(f"Failed to send to {broadcast_ip}, trying 255.255.255.255: {str(e)}")
+            print("Sending final magic packet to 255.255.255.255")
             send_magic_packet(
                 mac_address,
                 ip_address="255.255.255.255",
                 port=port
             )
-            print("Magic packet sent successfully to 255.255.255.255")
+        except Exception as e:
+            print(f"Failed to send to 255.255.255.255: {str(e)}")
             
-        return {"message": f"Wake-on-LAN packet sent to {device.name}"}
+        return {"message": f"Wake-on-LAN packets sent to {device.name}"}
     except Exception as e:
         print(f"Error sending magic packet: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
