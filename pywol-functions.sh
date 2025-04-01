@@ -57,13 +57,58 @@ create_container() {
   local swap="$4"
   local cores="$5"
   
+  # Get available storages that support containers
+  msg_info "Checking available storages"
+  local storages=$(pvesm status -content rootdir | awk 'NR>1 {print $1}')
+  if [ -z "$storages" ]; then
+    msg_error "No storage found that supports containers"
+    exit 1
+  fi
+  
+  # Let user select storage
+  local storage=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Storage Selection" --menu "Select a storage for the container:" 20 80 10 $(for s in $storages; do echo "$s" " "; done) 3>&1 1>&2 2>&3)
+  if [ -z "$storage" ]; then
+    msg_error "No storage selected"
+    exit 1
+  fi
+  
+  # Get available templates
+  msg_info "Checking available templates"
+  local templates=$(pveam list $storage | grep -i "debian" | awk '{print $1}')
+  if [ -z "$templates" ]; then
+    msg_info "No templates found. Downloading Debian template..."
+    pveam update
+    pveam download $storage debian-12-standard_12.0-1_amd64.tar.gz
+    templates="debian-12-standard_12.0-1_amd64.tar.gz"
+  fi
+  
+  # Let user select template
+  local template=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Template Selection" --menu "Select a template for the container:" 20 80 10 $(for t in $templates; do echo "$t" " "; done) 3>&1 1>&2 2>&3)
+  if [ -z "$template" ]; then
+    msg_error "No template selected"
+    exit 1
+  fi
+  
+  # Get available bridges
+  msg_info "Checking available bridges"
+  local bridges=$(pveum group list | grep -i "bridge" | awk '{print $1}')
+  if [ -z "$bridges" ]; then
+    bridges="vmbr0"
+  fi
+  
+  # Let user select bridge
+  local bridge=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Bridge Selection" --menu "Select a bridge for the container:" 20 80 10 $(for b in $bridges; do echo "$b" " "; done) 3>&1 1>&2 2>&3)
+  if [ -z "$bridge" ]; then
+    bridge="vmbr0"
+  fi
+  
   msg_info "Creating container ${container_id}"
-  pct create ${container_id} local:vztmpl/debian-12-standard_12.0-1_amd64.tar.gz \
+  pct create ${container_id} ${storage}:vztmpl/${template} \
     --hostname ${hostname} \
     --memory ${memory} \
     --swap ${swap} \
     --cores ${cores} \
-    --net0 name=eth0,bridge=vmbr0,ip=dhcp \
+    --net0 name=eth0,bridge=${bridge},ip=dhcp \
     --features nesting=1,keyctl=1 \
     --start 1
   msg_ok "Created container ${container_id}"
