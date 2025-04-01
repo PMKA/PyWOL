@@ -2,12 +2,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 import json
 import os
 from wakeonlan import send_magic_packet
 from typing import List, Optional
 from pathlib import Path
+import re
 
 app = FastAPI(title="PyWOL", description="Wake-on-LAN Application")
 
@@ -33,6 +34,18 @@ class Device(BaseModel):
     ip_address: Optional[str] = None
     broadcast_ip: Optional[str] = "255.255.255.255"
     port: Optional[int] = 9
+
+    @validator('mac_address')
+    def validate_mac_address(cls, v):
+        # Remove any separators
+        v = re.sub(r'[-:]', '', v)
+        # Convert to lowercase
+        v = v.lower()
+        # Check if it's a valid MAC address
+        if not re.match(r'^[0-9a-f]{12}$', v):
+            raise ValueError('Invalid MAC address format')
+        # Format with colons
+        return ':'.join(v[i:i+2] for i in range(0, 12, 2))
 
 # File paths
 DEVICES_FILE = BASE_DIR / "data" / "devices.json"
@@ -82,13 +95,24 @@ async def wake_device(device_name: str):
         raise HTTPException(status_code=404, detail="Device not found")
     
     try:
+        print(f"Attempting to wake device: {device.name}")
+        print(f"MAC address: {device.mac_address}")
+        print(f"Broadcast IP: {device.broadcast_ip}")
+        print(f"Port: {device.port}")
+        
+        # Ensure MAC address is properly formatted
+        mac_address = re.sub(r'[-:]', '', device.mac_address)
+        mac_address = ':'.join(mac_address[i:i+2] for i in range(0, 12, 2))
+        
         send_magic_packet(
-            device.mac_address,
+            mac_address,
             ip_address=device.broadcast_ip,
             port=device.port
         )
+        print("Magic packet sent successfully")
         return {"message": f"Wake-on-LAN packet sent to {device.name}"}
     except Exception as e:
+        print(f"Error sending magic packet: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
