@@ -105,13 +105,8 @@ async def wake_device(device_name: str):
         print(f"Attempting to wake device: {device.name}")
         print(f"MAC address: {device.mac_address}")
         
-        # Calculate broadcast IP from device IP
-        if device.ip_address:
-            ip_parts = device.ip_address.split('.')
-            broadcast_ip = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.255"
-        else:
-            broadcast_ip = "255.255.255.255"
-            
+        # Always use the VLAN 123 broadcast address since we're on that VLAN
+        broadcast_ip = "10.7.123.255"
         print(f"Broadcast IP: {broadcast_ip}")
         
         # Ensure port is set
@@ -136,7 +131,7 @@ async def wake_device(device_name: str):
                 print(f"Failed to send to {broadcast_ip}: {str(e)}")
                 break
         
-        # Try one more time with 255.255.255.255
+        # Try one more time with 255.255.255.255 as fallback
         try:
             print("Sending final magic packet to 255.255.255.255")
             send_magic_packet(
