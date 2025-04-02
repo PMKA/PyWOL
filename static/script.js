@@ -1,28 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const deviceForm = document.getElementById('deviceForm');
-    const devicesList = document.getElementById('devicesList');
-    let isLoading = false;
+    const deviceList = document.getElementById('deviceList');
+    const addDeviceForm = document.getElementById('addDeviceForm');
 
     // Load devices on page load
     loadDevices();
 
     // Handle form submission
-    deviceForm.addEventListener('submit', async (e) => {
+    addDeviceForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (isLoading) return;
-
-        const submitButton = deviceForm.querySelector('button[type="submit"]');
-        const originalButtonText = submitButton.innerHTML;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
-        submitButton.disabled = true;
-        isLoading = true;
-
+        
         const device = {
             name: document.getElementById('name').value,
-            mac_address: document.getElementById('macAddress').value,
-            ip_address: document.getElementById('ipAddress').value || null,
-            broadcast_ip: document.getElementById('broadcastIp').value || "255.255.255.255",
-            port: parseInt(document.getElementById('port').value) || 9
+            mac_address: document.getElementById('mac').value,
+            ip_address: document.getElementById('ip').value || null,
+            port: document.getElementById('port').value || null
         };
 
         try {
@@ -35,176 +26,92 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
-                showNotification('Device added successfully!', 'success');
-                deviceForm.reset();
-                await loadDevices();
+                addDeviceForm.reset();
+                loadDevices();
             } else {
                 const error = await response.json();
-                showNotification(error.detail || 'Failed to add device', 'error');
+                alert(`Error: ${error.detail}`);
             }
         } catch (error) {
-            showNotification('Error adding device', 'error');
-            console.error(error);
-        } finally {
-            submitButton.innerHTML = originalButtonText;
-            submitButton.disabled = false;
-            isLoading = false;
+            alert('Error adding device');
         }
     });
 
     // Load devices from API
     async function loadDevices() {
-        if (isLoading) return;
-        isLoading = true;
-
         try {
             const response = await fetch('/api/devices');
-            if (!response.ok) {
-                throw new Error('Failed to fetch devices');
-            }
             const devices = await response.json();
             displayDevices(devices);
         } catch (error) {
-            console.error('Error loading devices:', error);
-            showNotification('Error loading devices', 'error');
-        } finally {
-            isLoading = false;
+            deviceList.innerHTML = '<div class="error">Error loading devices</div>';
         }
     }
 
     // Display devices in the UI
     function displayDevices(devices) {
-        if (!Array.isArray(devices)) {
-            console.error('Invalid devices data:', devices);
-            return;
-        }
-
         if (devices.length === 0) {
-            devicesList.innerHTML = `
-                <div class="no-devices">
-                    <i class="fas fa-desktop"></i>
-                    <p>No devices added yet. Add your first device above!</p>
-                </div>
-            `;
+            deviceList.innerHTML = '<div class="no-devices">No devices added yet</div>';
             return;
         }
 
-        // Create a temporary container
-        const tempContainer = document.createElement('div');
-        
-        // Add new devices to the temporary container
-        devices.forEach((device, index) => {
-            const deviceCard = document.createElement('div');
-            deviceCard.className = 'device-card';
-            deviceCard.style.animation = `fadeIn 0.5s ease ${index * 0.1}s`;
-            deviceCard.innerHTML = `
-                <div class="device-info">
-                    <div class="device-name">${device.name}</div>
-                    <div class="device-mac"><i class="fas fa-network-wired"></i> MAC: ${device.mac_address}</div>
-                    ${device.ip_address ? `<div class="device-ip"><i class="fas fa-globe"></i> IP: ${device.ip_address}</div>` : ''}
+        deviceList.innerHTML = devices.map(device => `
+            <div class="device-card" data-id="${device.name}">
+                <div class="device-header">
+                    <h3 class="device-name">${device.name}</h3>
+                    <span class="device-status">${device.ip_address ? 'Online' : 'Offline'}</span>
+                </div>
+                <div class="device-details">
+                    <p><strong>MAC:</strong> ${device.mac_address}</p>
+                    ${device.ip_address ? `<p><strong>IP:</strong> ${device.ip_address}</p>` : ''}
+                    ${device.port ? `<p><strong>Port:</strong> ${device.port}</p>` : ''}
                 </div>
                 <div class="device-actions">
-                    <button class="btn-wake" onclick="wakeDevice('${device.name}')">
-                        <i class="fas fa-power-off"></i> Wake
-                    </button>
-                    <button class="btn-delete" onclick="deleteDevice('${device.mac_address}')">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
+                    <button class="wake-button" onclick="wakeDevice('${device.name}')">Wake Device</button>
+                    <button class="delete-button" onclick="deleteDevice('${device.name}')">Delete</button>
                 </div>
-            `;
-            tempContainer.appendChild(deviceCard);
-        });
-
-        // Replace the content of the devices list
-        devicesList.innerHTML = '';
-        devicesList.appendChild(tempContainer);
+            </div>
+        `).join('');
     }
 
     // Wake device function
     window.wakeDevice = async (deviceName) => {
-        if (isLoading) return;
-        const button = event.currentTarget;
-        const originalButtonText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Waking...';
-        button.disabled = true;
-        isLoading = true;
-
         try {
-            const response = await fetch(`/api/wake/${encodeURIComponent(deviceName)}`, {
+            const response = await fetch(`/api/wake/${deviceName}`, {
                 method: 'POST'
             });
-
+            
             if (response.ok) {
                 const result = await response.json();
-                showNotification(result.message, 'success');
+                alert(result.message);
             } else {
                 const error = await response.json();
-                showNotification(error.detail || 'Failed to wake device', 'error');
+                alert(`Error: ${error.detail}`);
             }
         } catch (error) {
-            showNotification('Error waking device', 'error');
-            console.error(error);
-        } finally {
-            button.innerHTML = originalButtonText;
-            button.disabled = false;
-            isLoading = false;
+            alert('Error waking device');
         }
     };
 
     // Delete device function
-    window.deleteDevice = async (macAddress) => {
-        if (isLoading) return;
-        if (!confirm('Are you sure you want to delete this device?')) {
+    window.deleteDevice = async (deviceName) => {
+        if (!confirm(`Are you sure you want to delete ${deviceName}?`)) {
             return;
         }
 
-        const button = event.currentTarget;
-        const originalButtonText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
-        button.disabled = true;
-        isLoading = true;
-
         try {
-            const response = await fetch(`/api/devices/${macAddress}`, {
+            const response = await fetch(`/api/devices/${deviceName}`, {
                 method: 'DELETE'
             });
 
             if (response.ok) {
-                showNotification('Device deleted successfully!', 'success');
-                await loadDevices();
+                loadDevices();
             } else {
                 const error = await response.json();
-                showNotification(error.detail || 'Failed to delete device', 'error');
+                alert(`Error: ${error.detail}`);
             }
         } catch (error) {
-            showNotification('Error deleting device', 'error');
-            console.error(error);
-        } finally {
-            button.innerHTML = originalButtonText;
-            button.disabled = false;
-            isLoading = false;
+            alert('Error deleting device');
         }
     };
-
-    // Show notification function
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-            ${message}
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Trigger reflow
-        notification.offsetHeight;
-        
-        notification.classList.add('show');
-        
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
 }); 
