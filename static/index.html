@@ -9,11 +9,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <button class="hamburger-menu" id="hamburgerMenu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="/" class="active"><i class="fas fa-home"></i> Home</a>
+            <a href="/static/api.html"><i class="fas fa-book"></i> API Docs</a>
+        </nav>
+    </div>
+
     <div class="container">
         <header>
             <h1><i class="fas fa-power-off"></i> PyWOL</h1>
             <p>Wake-on-LAN Device Manager</p>
-            <nav>
+            <nav class="desktop-nav">
                 <a href="/" class="nav-link active">Home</a>
                 <a href="/static/api.html" class="nav-link">API Docs</a>
             </nav>
