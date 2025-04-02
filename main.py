@@ -12,6 +12,7 @@ import re
 import time
 import socket
 import subprocess
+#
 
 app = FastAPI(title="PyWOL", description="Wake-on-LAN Application")
 
