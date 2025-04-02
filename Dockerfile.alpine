@@ -1,6 +1,9 @@
 # Use Alpine Linux with Python
 FROM python:3.8-alpine
 
+# Create a non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 # Set working directory
 WORKDIR /app
 
@@ -21,8 +24,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Create data directory
-RUN mkdir -p data
+# Create data directory and set permissions
+RUN mkdir -p data && \
+    chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 8000
