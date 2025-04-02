@@ -207,4 +207,38 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
+
+    // Hamburger Menu Functionality
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (hamburgerMenu && sidebar) {
+        hamburgerMenu.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+            // Animate hamburger icon
+            const spans = hamburgerMenu.querySelectorAll('span');
+            spans.forEach((span, index) => {
+                if (sidebar.classList.contains('active')) {
+                    if (index === 0) span.style.transform = 'rotate(45deg) translate(5px, 5px)';
+                    if (index === 1) span.style.opacity = '0';
+                    if (index === 2) span.style.transform = 'rotate(-45deg) translate(7px, -6px)';
+                } else {
+                    span.style.transform = '';
+                    span.style.opacity = '';
+                }
+            });
+        });
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!sidebar.contains(event.target) && !hamburgerMenu.contains(event.target)) {
+                sidebar.classList.remove('active');
+                const spans = hamburgerMenu.querySelectorAll('span');
+                spans.forEach(span => {
+                    span.style.transform = '';
+                    span.style.opacity = '';
+                });
+            }
+        });
+    }
 }); 
